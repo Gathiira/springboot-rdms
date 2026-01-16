@@ -1,0 +1,9 @@
+### Send POST request with json body
+POST http://localhost:2030/users
+Content-Type: application/json
+
+{
+  "name": "Jose Doe"
+}
+
+###
