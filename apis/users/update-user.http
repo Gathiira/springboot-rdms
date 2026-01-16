@@ -1,9 +1,9 @@
 ### Send POST request with json body
-POST http://localhost:2030/users
+PUT http://localhost:2030/users/2
 Content-Type: application/json
 
 {
-  "name": "Jane Doe"
+  "name": "Jane Doeee"
 }
 
 ###

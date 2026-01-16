@@ -25,7 +25,7 @@ public class UserService {
     public User updateUser(String userId, User user) {
         QueryExecutor executor = new QueryExecutor(db, txManager);
         executor.execute(
-                "UPDATE users SET name='Bob' WHERE id=1 AND name='Jane'"
+                String.format("UPDATE users SET name='%s' WHERE id=%s ", user.getName(), userId)
         );
         return user;
     }
@@ -33,7 +33,14 @@ public class UserService {
     public void deleteUser(String userId) {
         QueryExecutor executor = new QueryExecutor(db, txManager);
         executor.execute(
-                "DELETE FROM users WHERE id=1"
+                String.format("DELETE FROM users WHERE id=%s", userId)
+        );
+    }
+
+    public Object getUser(String userId) {
+        QueryExecutor executor = new QueryExecutor(db, txManager);
+        return executor.execute(
+                String.format("SELECT * FROM users WHERE id=%s", userId)
         );
     }
 

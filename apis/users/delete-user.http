@@ -1,0 +1,4 @@
+### Send POST request with json body
+DELETE http://localhost:2030/users/2
+
+###

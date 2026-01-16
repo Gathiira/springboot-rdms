@@ -1,0 +1,4 @@
+### GET request to list all users
+GET http://localhost:2030/users/2
+
+###

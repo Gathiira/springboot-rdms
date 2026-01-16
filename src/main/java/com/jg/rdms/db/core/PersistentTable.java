@@ -148,6 +148,7 @@ public class PersistentTable extends Table {
 
         if (updated > 0) {
             rewriteHeapFromMemory();
+            rebuildUniqueIndexes();
         }
 
         return updated;
@@ -289,20 +290,23 @@ public class PersistentTable extends Table {
     @Override
     public synchronized void deleteWhere(String column, Object value) {
 
+        boolean deleted = false;
+
         Iterator<Map<String, Object>> it = rows.iterator();
 
         while (it.hasNext()) {
             Map<String, Object> row = it.next();
 
             if (Objects.equals(row.get(column), value)) {
-                for (Column c : uniqueColumns) {
-                    uniqueIndexes.get(c.name()).remove(row.get(c.name()));
-                }
                 it.remove();
+                deleted = true;
             }
         }
 
-        rewriteHeapFromMemory();
+        if (deleted) {
+            rewriteHeapFromMemory();
+            rebuildUniqueIndexes(); // 🔑 CRITICAL
+        }
     }
 
     /* =========================
@@ -352,4 +356,20 @@ public class PersistentTable extends Table {
                         .toList()
         );
     }
+
+    private void rebuildUniqueIndexes() {
+        uniqueIndexes.values().forEach(Set::clear);
+
+        for (Map<String, Object> row : rows) {
+            for (Column c : uniqueColumns) {
+                Object val = row.get(c.name());
+                if (!uniqueIndexes.get(c.name()).add(val)) {
+                    throw new IllegalStateException(
+                            "Unique constraint violated during rebuild on column " + c.name()
+                    );
+                }
+            }
+        }
+    }
+
 }
