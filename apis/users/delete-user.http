@@ -1,4 +1,4 @@
 ### Send POST request with json body
-DELETE http://localhost:2026/users/2
+DELETE http://localhost:2026/api/users/2
 
 ###

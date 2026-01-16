@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Users</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<div class="container">
+    <div class="form-actions">
+        <h1>Users CRUD</h1>
+        <a href="/new" class="btn">Add User</a>
+    </div>
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Actions</th>
+        </tr>
+
+        <tr th:each="u : ${users}">
+            <td th:text="${u.get('id')}"></td>
+            <td th:text="${u.get('name')}"></td>
+            <td>
+                <div class="actions">
+                    <a th:href="@{/{id}/edit(id=${u.get('id')})}">
+                        Edit
+                    </a>
+
+                    <form th:action="@{/{id}/delete(id=${u.get('id')})}"
+                          method="post">
+                        <button type="submit" class="danger">Delete</button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+
+</body>
+</html>

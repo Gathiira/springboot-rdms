@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/users")
 @AllArgsConstructor
 public class UserController {
 
@@ -19,17 +19,17 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<User> create(@RequestBody User user) {
-        return ResponseEntity.ok(service.create(user));
+    public ResponseEntity<String> create(@RequestBody User user) {
+        return ResponseEntity.ok(service.create(user.getName()));
     }
 
     @PutMapping("/{userId}")
-    public ResponseEntity<User> create(@PathVariable String userId, @RequestBody User user) {
-        return ResponseEntity.ok(service.updateUser(userId, user));
+    public ResponseEntity<String> create(@PathVariable String userId, @RequestBody User user) {
+        return ResponseEntity.ok(service.updateUser(userId, user.getName()));
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<Object> getUser(@PathVariable String userId) {
+    public ResponseEntity<Object> getUser(@PathVariable int userId) {
         return ResponseEntity.ok(service.getUser(userId));
     }
 

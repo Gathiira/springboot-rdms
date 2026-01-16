@@ -1,8 +1,6 @@
 package com.jg.rdms.db;
 
 import com.jg.rdms.db.core.Database;
-import com.jg.rdms.db.core.PersistentTable;
-import com.jg.rdms.db.core.Table;
 import com.jg.rdms.db.repl.Repl;
 import com.jg.rdms.db.sql.QueryExecutor;
 import com.jg.rdms.db.tx.TransactionManager;

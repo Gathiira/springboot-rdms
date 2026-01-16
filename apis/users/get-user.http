@@ -1,4 +1,4 @@
 ### GET request to list all users
-GET http://localhost:2026/users/1
+GET http://localhost:2026/api/users/1
 
 ###

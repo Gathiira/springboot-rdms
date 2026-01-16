@@ -154,21 +154,19 @@ public class Database {
 
     public void init() {
 
-        // 1️⃣ ensure system catalog table exists
+        // 1️⃣ system catalog
         bootstrapCatalog();
 
-        // 2️⃣ load catalog data from disk
-        Table catalog = table(SystemTables.TABLES);
-        if (catalog instanceof PersistentTable pt) {
-            pt.loadFromDisk();
-        }
+        // 2️⃣ load catalog rows ONLY
+        PersistentTable catalog = (PersistentTable) table(SystemTables.TABLES);         // 🔑
+        catalog.loadFromDisk();
 
-        // 3️⃣ rebuild table definitions from catalog rows
-        loadSchemaFromCatalog();
+        // 3️⃣ create EMPTY table definitions
+        loadSchemaFromCatalog();      // 🚫 must NOT load data
 
-        // 4️⃣ load data for all user tables
+        // 4️⃣ now load data exactly once
         for (Table t : allTables()) {
-            if (t instanceof PersistentTable pt && t != catalog) {
+            if (t instanceof PersistentTable pt && pt != catalog) {
                 pt.loadFromDisk();
             }
         }

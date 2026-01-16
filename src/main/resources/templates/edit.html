@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Edit User</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+
+<div class="container">
+
+    <h1>Edit User</h1>
+
+    <form th:action="@{/{id}(id=${user.get('id')})}" method="post">
+        <label>
+            Name
+            <input type="text"
+                   name="name"
+                   th:value="${user.get('name')}"
+                   required>
+        </label>
+        <div class="form-actions">
+            <a href="/" style="margin-right: 12px;" class="btn secondary">Cancel</a>
+            <button type="submit">Update</button>
+        </div>
+    </form>
+
+</div>
+
+</body>
+</html>

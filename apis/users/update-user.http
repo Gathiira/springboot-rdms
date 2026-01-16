@@ -1,5 +1,5 @@
 ### Send POST request with json body
-PUT http://localhost:2026/users/1
+PUT http://localhost:2026/api/users/1
 Content-Type: application/json
 
 {

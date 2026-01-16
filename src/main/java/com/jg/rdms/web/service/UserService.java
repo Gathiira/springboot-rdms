@@ -3,49 +3,49 @@ package com.jg.rdms.web.service;
 import com.jg.rdms.db.core.Database;
 import com.jg.rdms.db.sql.QueryExecutor;
 import com.jg.rdms.db.tx.TransactionManager;
-import com.jg.rdms.web.domain.User;
-import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Map;
+
 @Service
-@AllArgsConstructor
 public class UserService {
 
-    private final Database db;
-    private final TransactionManager txManager;
+    private final QueryExecutor executor;
 
-    public User create(User user) {
-        QueryExecutor executor = new QueryExecutor(db, txManager);
-        executor.execute(
-                String.format("INSERT INTO users (name) VALUES ('%s')", user.getName())
-        );
-        return user;
+    public UserService(Database db, TransactionManager txManager) {
+        this.executor = new QueryExecutor(db, txManager);
     }
 
-    public User updateUser(String userId, User user) {
-        QueryExecutor executor = new QueryExecutor(db, txManager);
+    public String create(String name) {
         executor.execute(
-                String.format("UPDATE users SET name='%s' WHERE id=%s ", user.getName(), userId)
+                String.format("INSERT INTO users (name) VALUES ('%s')", name)
         );
-        return user;
+        return name;
+    }
+
+    public String updateUser(String userId, String name) {
+        executor.execute(
+                String.format("UPDATE users SET name='%s' WHERE id=%s ", name, userId)
+        );
+        return name;
     }
 
     public void deleteUser(String userId) {
-        QueryExecutor executor = new QueryExecutor(db, txManager);
         executor.execute(
                 String.format("DELETE FROM users WHERE id=%s", userId)
         );
     }
 
-    public Object getUser(String userId) {
-        QueryExecutor executor = new QueryExecutor(db, txManager);
-        return executor.execute(
-                String.format("SELECT * FROM users WHERE id=%s", userId)
+    public Map<String, Object> getUser(int id) {
+        List<Map<String, Object>> result = (List<Map<String, Object>>) executor.execute(
+                "SELECT * FROM users WHERE id=" + id
         );
+
+        return result.isEmpty() ? null : result.get(0);
     }
 
     public Object findAll() {
-        QueryExecutor executor = new QueryExecutor(db, txManager);
         return executor.execute(
                 "SELECT * FROM users"
         );

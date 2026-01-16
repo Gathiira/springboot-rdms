@@ -1,11 +1,16 @@
 package com.jg.rdms.db.core;
 
 import com.jg.rdms.db.storage.HeapFile;
+import com.jg.rdms.db.storage.RowSerializer;
 import com.jg.rdms.db.tx.Transaction;
 import com.jg.rdms.db.tx.WalRecord;
 import com.jg.rdms.db.tx.WriteAheadLog;
 
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 
 public class PersistentTable extends Table {
@@ -19,6 +24,9 @@ public class PersistentTable extends Table {
 
     private final Database database;
     private final List<Column> foreignKeyColumns;
+
+    private boolean loaded = false;
+
 
     public PersistentTable(Database database, String name, List<Column> columns) {
         super(name, columns);
@@ -131,9 +139,7 @@ public class PersistentTable extends Table {
             }
 
             // Apply update
-            for (var e : newValues.entrySet()) {
-                row.put(e.getKey(), e.getValue());
-            }
+            row.putAll(newValues);
 
             // Update unique indexes
             for (Column c : uniqueColumns) {
@@ -251,10 +257,15 @@ public class PersistentTable extends Table {
        ========================= */
 
     public synchronized void loadFromDisk() {
-        try {
-            rows.clear();
-            uniqueIndexes.values().forEach(Set::clear);
+        if (loaded) {
+            throw new IllegalStateException(
+                    "Table " + name + " loaded twice"
+            );
+        }
 
+        resetData();
+
+        try {
             for (Map<String, Object> row : heap.readAll()) {
                 rows.add(row);
 
@@ -262,13 +273,14 @@ public class PersistentTable extends Table {
                     Object val = row.get(c.name());
                     if (!uniqueIndexes.get(c.name()).add(val)) {
                         throw new IllegalStateException(
-                                "Corrupt data: duplicate " + c.name()
+                                "Corrupt data: duplicate " + c.name() + " table " + name
                         );
                     }
                 }
             }
 
             rebuildIdGenerator();
+            loaded = true;
 
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -314,13 +326,41 @@ public class PersistentTable extends Table {
        ========================= */
 
     private void rewriteHeapFromMemory() {
-        try {
-            heap.truncate();
+        Path original = heap.getPath();
+        Path temp = original.resolveSibling(original.getFileName() + ".tmp");
+
+        try (
+                RandomAccessFile tmpFile =
+                        new RandomAccessFile(temp.toFile(), "rw")
+        ) {
+            // 1️⃣ Write ALL rows to temp file
             for (Map<String, Object> row : rows) {
-                heap.append(row);
+                byte[] data = RowSerializer.serialize(row);
+                tmpFile.writeInt(data.length);
+                tmpFile.write(data);
             }
+
+            // 2️⃣ Force data to disk
+            tmpFile.getFD().sync();
+
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(
+                    "Failed to write temp heap file for table " + name, e
+            );
+        }
+
+        try {
+            // 3️⃣ ATOMIC replace
+            Files.move(
+                    temp,
+                    original,
+                    StandardCopyOption.REPLACE_EXISTING,
+                    StandardCopyOption.ATOMIC_MOVE
+            );
+        } catch (IOException e) {
+            throw new RuntimeException(
+                    "Failed to atomically replace heap file for table " + name, e
+            );
         }
     }
 
@@ -356,6 +396,12 @@ public class PersistentTable extends Table {
                         .toList()
         );
     }
+
+    public void resetData() {
+        rows.clear();
+        uniqueIndexes.values().forEach(Set::clear);
+    }
+
 
     private void rebuildUniqueIndexes() {
         uniqueIndexes.values().forEach(Set::clear);
