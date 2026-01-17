@@ -26,7 +26,7 @@ Run the Web App
 
 Open in your browser:
 
-http://localhost:2026/users
+http://localhost:2026
 
 #### SQL REPL Mode
 
